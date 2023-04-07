@@ -302,7 +302,128 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
   });
 });
 
-// SEARCH USERS
+// UPDATE USER ADDRESS
+const updateUserAddress = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  if (!req.body.address) throw new Error("Missing inputs");
+  const response = await User.findByIdAndUpdate(
+    _id,
+    { $push: { address: req.body.address } },
+    { new: true }
+  ).select("-password -role -refreshToken");
+  return res.status(200).json({
+    success: response ? true : false,
+    updatedUser: response ? response : "Some thing went wrong",
+  });
+});
+
+const updateCart = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { pid, quantity, color } = req.body;
+  if (!pid || !quantity || !color) throw new Error("Missing inputs");
+  const user = await User.findById(_id).select("cart");
+  const alreadyProduct = user?.cart.find((el) => el.product.toString() === pid);
+  if (alreadyProduct) {
+    if (alreadyProduct.color === color) {
+      const response = await User.updateOne(
+        { cart: { $elemMatch: alreadyProduct } },
+        { $set: { "cart.$.quantity": quantity } },
+        { new: true }
+      );
+      return res.status(200).json({
+        success: response ? true : false,
+        updatedUser: response ? response : "Some thing went wrong",
+      });
+    } else {
+      const response = await User.findByIdAndUpdate(
+        _id,
+        { $push: { cart: { product: pid, quantity, color } } },
+        { new: true }
+      );
+      return res.status(200).json({
+        success: response ? true : false,
+        updatedUser: response ? response : "Some thing went wrong",
+      });
+    }
+  } else {
+    const response = await User.findByIdAndUpdate(
+      _id,
+      { $push: { cart: { product: pid, quantity, color } } },
+      { new: true }
+    );
+    return res.status(200).json({
+      success: response ? true : false,
+      updatedUser: response ? response : "Some thing went wrong",
+    });
+  }
+});
+
+// ADD PRODUCT TO WISHLIST
+const addToWishList = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { pid } = req.body;
+  if (!pid) throw new Error("Missing Inputs");
+  const user = User.findById(_id);
+  const alreadyAdded = user?.wishlist?.find(
+    (id) => id.toString() === pid.toString()
+  );
+  if (alreadyAdded) {
+    const user = await User.findByIdAndUpdate(
+      _id,
+      {
+        $pull: { wishlist: pid },
+      },
+      { new: true }
+    ).populate("wishlist", "title -category");
+    return res.status(200).json({
+      status: user ? true : false,
+      userData: user ? user : "Cannot update product into wishlist",
+    });
+  } else {
+    const user = await User.findByIdAndUpdate(
+      _id,
+      {
+        $push: { wishlist: pid },
+      },
+      { new: true }
+    ).populate("wishlist", "title -category");
+    return res.status(200).json({
+      status: user ? true : false,
+      userData: user ? user : "Cannot update product into wishlist",
+    });
+  }
+});
+
+
+// BLOCK USER
+const userBlocked = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const blockedUser = await User.findByIdAndUpdate(id, { isBlocked: true }, { new: true });
+  return res.status(200).json({
+    status: blockedUser ? true : false,
+    userData: blockedUser ? blockedUser : "Cannot blocked user"
+  })
+})
+
+// UNBLOCK USER
+const unblockedUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const unblocked = await User.findByIdAndUpdate(id , { isBlocked: false }, { new: true });
+  return res.status(200).json({
+    status: unblocked ? true : false,
+    userData: unblocked ? unblocked : "Cannot unblocked user" 
+  });
+});
+
+// GET WISHLIST 
+const getWishList = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const response = await User.findById(_id).populate("wishlist");
+  return res.status(200).json({
+    status: response ? true : false,
+    userData: response ? response : "Cannot get wishlist data"
+  });
+});
 
 module.exports = {
   register,
@@ -318,4 +439,10 @@ module.exports = {
   deleteUser,
   updateUser,
   updateUserByAdmin,
+  updateUserAddress,
+  updateCart,
+  addToWishList,
+  userBlocked,
+  unblockedUser,
+  getWishList
 };

@@ -145,14 +145,33 @@ const ratings = asyncHandler(async (req, res) => {
   // Sum Ratings
   const updatedProduct = await Product.findById(pid);
   const ratingsCount = updatedProduct.ratings.length;
-  const sumRatings = updatedProduct.ratings.reduce((sum, el) => sum + +(el.star), 0);
-  updatedProduct.totalRatings = Math.round(sumRatings * 10 / ratingsCount) / 10;
+  const sumRatings = updatedProduct.ratings.reduce(
+    (sum, el) => sum + +el.star,
+    0
+  );
+  updatedProduct.totalRatings =
+    Math.round((sumRatings * 10) / ratingsCount) / 10;
 
   await updatedProduct.save();
 
   return res.status(200).json({
     status: true,
-    updatedProduct
+    updatedProduct,
+  });
+});
+
+// UPLOAD MULTIPLE FILE IMAGES
+const uploadImagesProduct = asyncHandler(async (req, res) => {
+  const { pid } = req.params;
+  if (!req.files) throw new Error("Missing inputs");
+  const response = await Product.findByIdAndUpdate(
+    pid,
+    { $push: { images: req.files.map((el) => el.path) } },
+    { new: true }
+  );
+  return res.status(200).json({
+    status: response ? true : false,
+    updatedProduct: response ? response : "Cannot upload images product",
   });
 });
 
@@ -163,4 +182,5 @@ module.exports = {
   updateProduct,
   deleteProduct,
   ratings,
+  uploadImagesProduct,
 };

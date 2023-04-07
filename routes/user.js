@@ -13,6 +13,8 @@ router.get(
   [verifyAccessToken, allowedTo("user")],
   userController.getUserCurrent
 );
+router.put("/wishlist/create", [verifyAccessToken, allowedTo("user")], userController.addToWishList)
+router.put("/carts", [verifyAccessToken], userController.updateCart);
 router.get("/details/:id", verifyAccessToken, userController.getDetailsUser);
 router.get("/forgot-password", userController.forgotPassword);
 router.put("/reset-password/:token", userController.resetPassword);
@@ -27,4 +29,8 @@ router.put(
   [verifyAccessToken,  allowedTo("user")],
   userController.updateUserByAdmin
 );
+router.put("/block-user/:id", [verifyAccessToken, allowedTo("user")], userController.userBlocked);
+router.put("/unblock-user/:id", [verifyAccessToken, allowedTo("user")], userController.unblockedUser);
+router.put("/address/:uid", [verifyAccessToken, allowedTo("user")], userController.updateUserAddress);
+router.get("/wishlist/all", [verifyAccessToken, allowedTo("user")], userController.getWishList);
 module.exports = router;

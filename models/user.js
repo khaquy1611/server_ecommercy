@@ -24,7 +24,7 @@ var userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
-      sparse:true
+      sparse: true,
     },
     password: {
       type: String,
@@ -36,18 +36,26 @@ var userSchema = new mongoose.Schema(
       type: String,
       default: "user",
     },
-    cart: {
+    cart: [
+      {
+        product: {
+          type: mongoose.Types.ObjectId,
+          ref: "Product",
+        },
+        quantity: Number,
+        color: String,
+      },
+    ],
+    address: {
       type: Array,
       default: [],
     },
-    address: {
-      type: mongoose.Types.ObjectId,
-      ref: "Address",
-    },
-    wishlist: {
-      type: mongoose.Types.ObjectId,
-      ref: "Product",
-    },
+    wishlist: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
     isBlocked: {
       type: Boolean,
       default: false,
